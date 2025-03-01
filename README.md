@@ -1,7 +1,7 @@
 # Zaawansowane analizy przestrzenne
 
 To repozytorium zawiera materiały do kursu **Zaawansowane analizy przestrzenne** prowadzonego na
-Uniwersytecie Marii Curie-Skłodowskiej w 2024 r.
+Uniwersytecie Marii Curie-Skłodowskiej w semestrze letnim w 2024 r.
 
 **R** jest jednym z najpopularniejszych języków programowania używanych do analizy danych.
 Jest szeroko stosowany w analizach przestrzennych ze względu na dużą liczbę pakietów przeznaczonych
