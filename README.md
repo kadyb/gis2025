@@ -16,7 +16,7 @@ Oprócz tego oferuje szeroki wachlarz technik wizualizacji danych.
 
 **1. Instalacja R**
 
-Interpreter języka **R** można pobrać dla [Windows](https://cloud.r-project.org/bin/windows/base/R-4.3.2-win.exe), [MacOS](https://cran.r-project.org/bin/macosx/) oraz [Linux](https://cloud.r-project.org/bin/linux/).
+Interpreter języka **R** można pobrać dla [Windows](https://cloud.r-project.org/bin/windows/base/R-4.4.3-win.exe), [MacOS](https://cran.r-project.org/bin/macosx/) oraz [Linux](https://cloud.r-project.org/bin/linux/).
 
 **2. Instalacja RStudio**
 
