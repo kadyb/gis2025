@@ -16,7 +16,7 @@ Oprócz tego oferuje szeroki wachlarz technik wizualizacji danych.
 
 **1. Instalacja R**
 
-Interpreter języka **R** można pobrać dla [Windows](https://cloud.r-project.org/bin/windows/base/R-4.4.3-win.exe), [MacOS](https://cran.r-project.org/bin/macosx/) oraz [Linux](https://cloud.r-project.org/bin/linux/).
+Interpreter języka **R** można pobrać dla [Windows](https://cloud.r-project.org/bin/windows/base/), [MacOS](https://cran.r-project.org/bin/macosx/) oraz [Linux](https://cloud.r-project.org/bin/linux/).
 
 **2. Instalacja RStudio**
 
@@ -45,7 +45,8 @@ Dokumentację do tego pakietu znajdziesz tutaj: <https://rspatial.github.io/terr
 
 Materiały dostępne są w postaci interaktywnych notebooków (R Markdown).
 
-* [Wprowadzenie](https://kadyb.github.io/gis2025/notebooks/01_wprowadzenie.html)
+1. [Wprowadzenie](https://kadyb.github.io/gis2025/notebooks/01_wprowadzenie.html)
+2. [Przetwarzanie danych rastrowych](https://kadyb.github.io/gis2025/notebooks/02_przetwarzanie_raster.html)
 
 # Zaliczenie
 
