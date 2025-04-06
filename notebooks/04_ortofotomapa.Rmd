@@ -1,0 +1,179 @@
+---
+title: "Ortofotomapa"
+author: "Krzysztof Dyba"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+---
+
+```{r eval=FALSE}
+# install.packages("remotes")
+remotes::install_github("kadyb/rgugik")
+```
+
+```{r message=FALSE}
+library("terra")
+library("rgugik")
+```
+
+# Wstęp
+
+Główny Urząd Geodezji i Kartografii jest istotnym
+[źródłem danych przestrzennych](https://www.gov.pl/web/gugik/dane-udostepniane-bez-platnie-do-pobrania-z-serwisu-wwwgeoportalgovpl)
+dla Polski. Dane można przeglądać i pobrać z [Geoportalu](https://mapy.geoportal.gov.pl/)
+lub wykorzystując różne [usługi](https://www.geoportal.gov.pl/pl/usluga/).
+W otwartych zbiorach danych znajdziemy m. in.:
+
+* ortofotomapy,
+* cyfrowe modele wysokościowe (CMW):
+  + numeryczny model terenu (NMT),
+  + numeryczny model pokrycia terenu (NMPT),
+  + chmury punktów,
+* modele 3D budynków,
+* Państwowy Rejestr Granic (PRG),
+* Baza Danych Obiektów Topograficznych (BDOT),
+* i inne.
+
+Wyszukiwanie i pobieranie wymienionych zbiorów danych umożliwia pakiet **rgugik**.
+
+# Ortofotomapa
+
+Ortofotomapa to rastrowe, ortogonalne i kartometryczne przedstawienie powierzchni
+terenu powstałe w wyniku cyfrowego przetwarzania zdjęć lotniczych lub satelitarnych.
+Podczas ortorektyfikacji usuwane są zniekształcenia geometryczne wynikające z
+rzeźby terenu przy użyciu cyfrowych modeli wysokości. Ortofotomapa posiada
+georeferencje, co pozwala na określenie współrzędnych geograficznych dla każdej
+komórki obrazu.
+
+Cechy ortofotomapy:
+
+* **Rozdzielczość przestrzenna** -- związana z rozmiarem najmniejszego obiektu,
+który może zostać wykryty przez czujnik i jest określana przez rozmiar komórki
+obrazu (piksel). Im mniejsza komórka, tym więcej szczegółów reprezentuje.
+Zbyt duży rozmiar oznacza, że poszczególne obiekty na zdjęciu przestają być
+rozpoznawalne.
+* **Kompozycja** -- obrazy analogowe są przedstawione w odcieniach szarości,
+natomiast obrazy cyfrowe mogą składać się z naturalnych kolorów (RGB) lub
+bliskiej podczerwieni (NIR)
+
+## Wyszukiwanie
+
+W katalogu `dane` znajduje się warstwa poligonowa `Lublin.gpkg`, która reprezentuje
+granicę Lublina w układzie `EPSG:2180`.
+
+```{r}
+lublin = vect("../dane/Lublin.gpkg")
+lublin
+```
+
+Funkcja `perim()` pozwala obliczyć długość granicy, natomiast funkcja `expanse()`
+wskazuje powierzchnię obszaru.
+
+```{r}
+perim(lublin) / 1000 # wynik w km
+expanse(lublin, unit = "km")
+```
+
+Kolejny etap dotyczy wyszukania dostępnych danych dla naszego obszaru zainteresowania.
+Dla uproszczenie wyznaczmy centroid. Jego współrzędne można odczytać używając
+funkcji `crds()`.
+
+```{r}
+punkt = centroids(lublin)
+crds(punkt)
+```
+
+```{r}
+plot(lublin, main = "Lublin")
+plot(punkt, col = "blue", add = TRUE)
+```
+
+Teraz wyszukajmy dostępne dane za pomocą funkcji `ortho_request()`.
+
+```{r}
+dane = ortho_request(punkt)
+```
+
+Możemy wyświetlić część otrzymanej ramki danych lub alternatywnie przeglądać
+całość używając funkcji `View()`.
+
+```{r}
+# wyświetl 10 pierwszych wierszy i 6 pierwszych kolumn
+dane[1:10, 1:6]
+```
+
+Standardowo dane możemy filtrować z uwzględnieniem zadanych parametrów.
+
+```{r eval=FALSE}
+dane[dane$year > 2016, ]
+dane[dane$composition == "CIR", ]
+```
+
+I sortować, np. według aktualności.
+
+```{r eval=FALSE}
+# kolejność malejąca (najnowsze dane)
+dane[order(-dane$year), ]
+```
+
+## Pobieranie
+
+Jako przykład pobierzmy dwie kompozycje tego samego obszaru wykonane w naturalnych
+barwach i z kanałem bliskiej podczerwieni z 2022 r.
+(ID: `76746_1143325_M-34-34-A-c-1-4` i `76745_1143326_M-34-34-A-c-1-4`).
+
+```{r}
+id = c("76746_1143325_M-34-34-A-c-1-4", "76745_1143326_M-34-34-A-c-1-4")
+dane_sel = dane[dane$filename %in% id, ]
+```
+
+Po selekcji potrzebnych danych, można je pobrać wykorzystując funkcję
+`tile_download()`. Możliwe jest również wskazanie katalogu, do którego powinny
+zostać pobrane obrazy (argument `outdir`).
+
+Zazwyczaj warto zwiększyć domyślną wartość przekroczenia czasu połączenia
+(`timeout`) z domyślnych 60 sekund w przypadku dużych plików lub wolnego
+połączenia.
+
+```{r message=FALSE, results="hide"}
+options(timeout = 600)
+tile_download(dane_sel, outdir = "dane")
+```
+
+Do wylistowania pobranych plików służy funkcja `list.files()`. Należy wskazać
+jakie pliki chcemy wczytać (`pattern = "\\.tif$"`) i zapobiegawczo zwrócić pełne
+ścieżki do plików (`full.names = TRUE`).
+
+```{r}
+pliki = list.files("dane", pattern = "\\.tif$", full.names = TRUE)
+pliki
+```
+
+W ostatnim kroku możemy kolejno wczytać rastry i je wyświetlić.
+
+```{r}
+# kompozycja z bliską podczerwienią
+r1 = rast(pliki[1])
+plot(r1)
+```
+
+```{r}
+# kompozycja w naturalnych barwach
+r2 = rast(pliki[2])
+plot(r2)
+```
+
+# Zadanie
+
+**6.** Pobierz minimum dwa sąsiadujące ze sobą kafelki ortofotomapy z tej samej
+serii i połącz je:
+
+a) do jednego pliku *.tiff* używając funkcji `merge()`,
+b) do jednego wirtualnego pliku *.vrt* używając funkcji `vrt()`.
+
+Sprawdź zajmowaną ilość miejsca przez te pliki na dysku wykorzystując
+funkcję `file.size()` (wynik zwracany jest w bajtach). Sprawdź również zawartość
+pliku *.vrt* (czym on jest w rzeczywistości?). Następnie, zmniejsz rozdzielczość
+mozaiki do 10 m i zapisz wynik. Jak zmieniła się jakość w stosunku do
+oryginalnego zdjęcia?
