@@ -49,6 +49,7 @@ Materiały dostępne są w postaci interaktywnych notebooków (R Markdown).
 2. [Przetwarzanie danych rastrowych](https://kadyb.github.io/gis2025/notebooks/02_przetwarzanie_raster.html)
 3. [Przetwarzanie danych wektorowych](https://kadyb.github.io/gis2025/notebooks/03_przetwarzanie_wektor.html)
 4. [Ortofotomapa](https://kadyb.github.io/gis2025/notebooks/04_ortofotomapa.html)
+5. [Cyfrowe modele wysokościowe](https://kadyb.github.io/gis2025/notebooks/05_cmw.html)
 
 # Zaliczenie
 
