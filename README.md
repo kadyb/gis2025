@@ -51,6 +51,7 @@ Materiały dostępne są w postaci interaktywnych notebooków (R Markdown).
 4. [Ortofotomapa](https://kadyb.github.io/gis2025/notebooks/04_ortofotomapa.html)
 5. [Cyfrowe modele wysokościowe](https://kadyb.github.io/gis2025/notebooks/05_cmw.html)
 6. [Interpolacja przestrzenna](https://kadyb.github.io/gis2025/notebooks/06_interpolacja.html)
+7. [Dostęp do danych satelitarnych](https://kadyb.github.io/gis2025/notebooks/07_dane_satelitarne.html)
 
 # Zaliczenie
 
