@@ -1,0 +1,263 @@
+---
+title: "Redukcja wymiarowości"
+author: "Krzysztof Dyba"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+---
+
+```{r message=FALSE}
+library("terra")
+library("corrplot")
+set.seed(1)
+```
+
+# Wprowadzenie
+
+W rzeczywistych zbiorach danych często spotykamy się z istotnie dużą liczbą
+zmiennych (cech), które opisują pewne obserwacje (obiekty). Jest to tak zwane
+zjawisko wielowymiarowości danych (*high dimensionality*). W praktyce, powoduje
+to problemy związane z ilością wymaganej pamięci do przetwarzania danych, dłuższym
+czasem obliczeń, trudnościami w interpretacji zależności i ich wizualizacją w
+przestrzeni dwuwymiarowej, a także zmniejszenie skuteczności modelu wraz ze
+wzrostem liczby zmiennych (w takiej sytuacji model zazwyczaj słabo generalizuje
+zależności).
+
+Rozwiązaniem może być zastosowanie metody opartej na **analizie głównych składowych**
+(*principal component analysis*, PCA), która jest najczęściej stosowanym podejściem
+do redukcji wymiarowości. Przekształca ona zbiór danych ze skorelowanymi zmiennymi
+w nowy zbiór nieskorelowanych (ortogonalnych) zmiennych nazywanymi głównymi
+składowymi (*principal components*), zachowując przy tym jak najwięcej zmienności
+(informacji). Główne składowe są liniowymi kombinacjami oryginalnych zmiennych,
+uporządkowanymi według ilości wariancji, którą wyjaśniają. Oznacza to, że pierwsza
+główna składowa (PC1) wyjaśnia największą zmienność (wariancję), a każda kolejna
+składowa (PC2, PC3, itd.) mniej.
+
+Analiza głównych składowych umożliwia przede wszystkim zmniejszenie liczby
+zmiennych w zbiorze danych i usunięcie współliniowości między nimi. Oprócz tego,
+przydatna jest do wizualizacji danych wielowymiarowych w dwóch wymiarach
+wykorzystując najczęściej dwie najistotniejsze główne składowe (PC1 i PC2).
+
+Technika ta wymaga spełnienia kilku założeń:
+
+1. Relacje między zmiennymi są liniowe.
+2. Zmienne są typu numerycznego.
+3. Wszystkie obserwacje mają wartości (brak `NA` w zbiorze danych).
+4. Zmienne powinny mieć rozkład zbliżony do normalnego i brak wartości odstających.
+5. Zmienne muszą posiadać jednakowe skale (wymagana standaryzacja).
+
+Niemniej, nie jest to jedyne podejście do redukcji wymiarowości. Wyróżnić
+można także skalowanie wielowymiarowe (*multidimensional scaling*), autoenkodery
+oparte o sieci neuronowe czy techniki służące wyłącznie do wizualizacji *t-SNE*
+i *UMAP*.
+
+## Wariancja
+
+Przed przystąpieniem do analizy, należy wytłumaczyć czym jest właściwie wariancja.
+Jest to miara statystyczna, która opisuje ilościowo zróżnicowanie (rozrzut)
+wartości w zbiorze danych, określając jak bardzo odbiegają od wartości średniej
+tego zbioru. Wysoka wariancja wskazuje, że punkty są rozproszone, podczas gdy
+niska wariancja oznacza, że są one skupione blisko średniej. Zerowa wariancja
+oznacza, że wszystkie wartości są identyczne (brak zmienności).
+
+```r
+# wariancja dla próby
+sum((x - mean(x))^2 / (length(x) - 1))
+```
+
+Pamiętaj, że wariancja jest wyrażona w jednostkach kwadratowych ($j^2$)
+oryginalnych danych, co może sprawić, że interpretacja będzie mniej intuicyjna.
+Z tego powodu często preferowane jest odchylenie standardowe, tj. pierwiastek
+kwadratowy z wariancji.
+
+Analiza głównych składowych zakłada, że główne składowe o największej wariancji
+zawierają najważniejsze informacje. Jeśli główna składowa nie wykazuje prawie
+żadnej wariancji, to ma ona niewielki wkład w reprezentację zbioru danych i można
+ją pominąć.
+
+# Przygotowanie danych
+
+```{r}
+url = "https://zenodo.org/records/7299645/files/dane.zip"
+
+landsat = c("LC08_L2SP_190024_20200418_20200822_02_T1_SR_B1.TIF",
+            "LC08_L2SP_190024_20200418_20200822_02_T1_SR_B2.TIF",
+            "LC08_L2SP_190024_20200418_20200822_02_T1_SR_B3.TIF",
+            "LC08_L2SP_190024_20200418_20200822_02_T1_SR_B4.TIF",
+            "LC08_L2SP_190024_20200418_20200822_02_T1_SR_B5.TIF",
+            "LC08_L2SP_190024_20200418_20200822_02_T1_SR_B6.TIF",
+            "LC08_L2SP_190024_20200418_20200822_02_T1_SR_B7.TIF")
+landsat = paste0("/vsizip/vsicurl/", url, "/dane/dane/landsat/", landsat)
+```
+
+```{r}
+e = ext(c(622510, 659710, 5754795, 5784772))
+landsat = rast(landsat, win = e)
+names(landsat) = paste0("B", 1:7) # zamień nazwy
+```
+
+```{r}
+landsat = landsat * 0.0000275 - 0.2
+landsat = clamp(landsat, lower = 0, upper = 1, values = FALSE)
+```
+
+```{r}
+smp = spatSample(landsat, size = 10000, na.rm = TRUE)
+```
+
+Poglądowo sprawdźmy ogólną korelację liniową pomiędzy zmiennymi z wyliczonej
+próby.
+
+```{r}
+cor_mat = cor(smp, method = "pearson")
+corrplot(cor_mat, method = "number", type = "lower", diag = FALSE)
+```
+
+# Analiza głównych składowych
+
+Do analizy głównych składowych można wykorzystać między innymi funkcję `prcomp()`.
+Jeśli dokonaliśmy wcześniej standaryzacji danych, to koniecznie musimy nadać
+argumentom `scale.` i `center` wartość `FALSE`, aby uniknąć podwójnej standaryzacji.
+
+```{r}
+pca = prcomp(smp, scale. = FALSE, center = FALSE)
+summary(pca)
+```
+
+W podsumowaniu wyników otrzymujemy:
+
+- Odchylenie standardowe (*Standard deviation*) -- wskazuje istotność każdej
+głównej składowej (im większa wartość, tym większa istotność).
+- Proporcja wariancji (*Proportion of Variance*) -- proporcja całkowitej
+wariancji wyjaśniona przez każdą główną składową.
+- Proporcja skumulowana (*Cumulative Proportion*) -- skumulowana część wariancji
+wyjaśniona przez pierwsze $k$ głównych składowych.
+
+Dodatkowo, otrzymaliśmy dwa obiekty `rotation` i `x`. Ten pierwszy reprezentuje
+macierz ładunków (*loadings*), natomiast drugi zawiera nowe wartości obserwacji
+po transformacji rzutowane na główne składowe (można je później wykorzystać
+do modelowania).
+
+```{r}
+# macierz ładunków PC1 i PC2
+pca$rotation[, 1:2]
+```
+
+Ładunki informują, w jakim stopniu każda zmienna wejściowa ma wpływ na każdą
+główną składową, tzn. wysoka wartość ładunku w pierwszej składowej głównej
+oznacza, że jest silnie skorelowana z tą składową. Natomiast znak wskazuje
+kierunek zależności.
+
+Dla przykładu, kanał NIR (B5) ma wysoki ujemny ładunek na pierwszej składowej
+(PC1), oznacza to, że ta składowa jest silnie zależna od tej zmiennej. Zobaczymy
+jak wygląda ta zależność wykresie rozrzutu.
+
+```{r}
+plot(smp$B5, pca$x[, 1], pch = 19, xlab = "NIR", ylab = "PC1")
+```
+
+# Interpretacja
+
+Najważniejszym krokiem jest zrozumienie, w jaki sposób interpretować otrzymane
+wyniki. W tym celu będą pomocne dwa wykresy.
+
+## Wykres piargowy
+
+Wykres piargowy (*scree plot*) to wykres wyjaśnionej wariancji dla każdej
+głównej składowej. Pomaga określić, ile głównych składowych należy zachować do
+dalszej analizy. Punkt przegięcia, tzw. "łokieć" wykresu zazwyczaj wskazuje punkt,
+w którym dodanie większej liczby składowych w niewielkim stopniu przyczynia się
+do ogólnej wyjaśnionej wariancji. Aby go wyświetlić wystarczy użyć funkcji
+`plot()` na obiekcie klasy `prcomp`.
+
+```{r}
+plot(pca, main = "Analiza głównych składowych", xlab = "Główna składowa")
+abline(v = 2.5, lty = 2, col = "red")
+```
+
+Powyższy wykres sugeruje, że powinniśmy zachować wyłącznie dwie pierwsze główne
+składowe, które wyjaśniają aż 99% zmienności w danych. Pozostałe składowe
+reprezentują mniejszą ilość informacji (zasadniczo jest to szum w danych).
+
+## Biplot
+
+Biplot to wykres punktowy przedstawiający rzutowane obserwacje na wybrane
+główne składowe oraz strzałki reprezentujące ładunki oryginalnych zmiennych,
+które tworzą pewne kąty. Jeśli wartość kąta pomiędzy strzałkami jest bliska:
+
+- 0° to zmienne są silnie dodatnio skorelowane.
+- 180° to zmienne są również silnie skorelowane, ale przeciwnie.
+- 90° to zmienne są niezależne (ortogonalne).
+
+Biplot można stworzyć używając funkcji `biplot()` na obiekcie klasy `prcomp`.
+Argument `choices` pozwoli nam wybrać główne składowe.
+
+```{r}
+biplot(pca, choices = 1:2, cex = 0.6, xlabs = rep("", nrow(smp)))
+```
+
+Niemniej, interpretacja głównych składowych jest skomplikowanym procesem. Z tego
+powodu warto rozważyć najprostsze techniki redukcji wymiarowości oparte na usuwaniu
+cechy o bliskiej zeru wariancji (mała zmienność to mało informacji) oraz cech,
+które są ze sobą silnie skorelowane (np. korelacja powyżej 90%), aby zmniejszyć
+redundancję danych.
+
+# Predykcja
+
+Po wyznaczeniu głównych składowych, przechodzimy do najtrudniejszego etapu,
+polegającego na ekstrapolacji wyliczonych głównych składowych z próby na cały
+raster. Zasadniczo, tę procedurę przeprowadza się sekwencyjnie z podziałem na
+mniejsze bloki rastra, jednakże nasze rastry są małe i możemy je wczytać całe
+do pamięci.
+
+Ponownie wykorzystajmy funkcję `as.data.frame()`, aby dokonać konwersji rastrów
+(`SpatRaster`) do ramki danych. Ustawmy także argument `na.rm = FALSE` do zachowania
+pustych wartości w rastrze. Następnie, kluczowym krokiem jest wyznaczenie indeksów
+komórek, które posiadają wartości używając funkcji `complete.cases()`, ponieważ
+będzie to niezbędne do wstawienia wartości w odpowiednie miejsca w wektorze.
+
+```{r}
+df = as.data.frame(landsat, na.rm = FALSE)
+# indeksy komórek z wartościami
+idx = complete.cases(df)
+# usuń puste wartości
+df = df[idx, ]
+```
+
+Mamy już przygotowane dane, teraz możemy wykonać ekstrapolację używając
+funkcji `predict()` i podając dwa wymagane argumenty. Pierwszy to obliczone
+składowe główne w obiekcie `pca`, a drugi obiekt to ramka danych `df`.
+
+```{r}
+# PCA dla całego zbioru danych
+pr = predict(pca, df)
+```
+
+Wynikiem powyższej predykcji jest macierz, w której w wierszach znajdują się
+komórki rastra, a w kolumnach składowe główne. Stwórzmy teraz nowy wektor
+zawierający wyłącznie brakujące wartości `NA` o takiej długości, ile raster
+posiada wszystkich komórek (999 * 1240). Następnie używając indeksów z obiektu
+`idx` przypiszemy wartości pierwszej głównej składowej do wektora `vec` w
+odpowiednich miejscach.
+
+```{r}
+# stwórz pusty wektor
+vec = rep(NA, ncell(landsat))
+# przypisz wartości z PC1
+vec[idx] = pr[, 1]
+```
+
+Następnie tworzymy nowy raster o nazwie `output` kopiując metadane z rastra `r`
+oraz definiując jeden kanał i wartości na podstawie wektora `vec`.
+
+```{r}
+# stwórz nowy raster
+output = rast(landsat, nlyrs = 1, vals = vec)
+```
+
+Finalnie, dokonajmy wizualizacji pierwszej głównej składowej (PC1) na mapie.
+
+```{r}
+plot(output, main = "Pierwsza składowa główna (PC1)")
+```
