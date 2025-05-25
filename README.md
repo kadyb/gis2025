@@ -54,6 +54,7 @@ Materiały dostępne są w postaci interaktywnych notebooków (R Markdown).
 7. [Dostęp do danych satelitarnych](https://kadyb.github.io/gis2025/notebooks/07_dane_satelitarne.html)
 8. [Klasyfikacja nienadzorowana](https://kadyb.github.io/gis2025/notebooks/08_klasteryzacja.html)
 9. [Klasyfikacja nadzorowana](https://kadyb.github.io/gis2025/notebooks/09_klasyfikacja.html)
+10. [Redukcja wymiarowości](https://kadyb.github.io/gis2025/notebooks/10_redukcja_wymiarowosci.html)
 
 # Zaliczenie
 
