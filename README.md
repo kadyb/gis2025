@@ -61,7 +61,7 @@ Materiały dostępne są w postaci interaktywnych notebooków (R Markdown).
 Zaliczenie kursu wymaga spełnienia dwóch obligatoryjnych warunków. Pierwszy polega na
 prawidłowym wykonaniu wszystkich zadań realizowanych na zajęciach i przesłanie ich w ustalonym
 terminie. Przesłanie zadań po terminie skutkuje niezaliczeniem przedmiotu. Drugi warunek dotyczy
-wykonania wybranego [projektu końcowego]((./Zaliczenie.md)) i jego prezentacji na zajęciach.
+wykonania wybranego [projektu końcowego](./Zaliczenie.md) i jego prezentacji na zajęciach.
 Prace zaliczeniowe muszą zostać wykonane samodzielnie. Zakazane jest używanie modeli językowych
 (sztucznej inteligencji) do generowania ich rozwiązań.
 
