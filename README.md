@@ -65,8 +65,6 @@ wykonania wybranego [projektu końcowego](./Zaliczenie.md) i jego prezentacji na
 Prace zaliczeniowe muszą zostać wykonane samodzielnie. Zakazane jest używanie modeli językowych
 (sztucznej inteligencji) do generowania ich rozwiązań.
 
-*Data aktualizacji: 23.07.2025 r.*
-
 # Literatura
 
 1. ["Geocomputation with R"](https://r.geocompx.org/) Robin Lovelace, Jakub Nowosad i Jannes Muenchow
