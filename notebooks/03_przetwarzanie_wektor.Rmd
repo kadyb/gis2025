@@ -216,9 +216,9 @@ Zastanów się również jak na wyniki analizy wpływają:
 
 **5.** Na stronie [https://dane.gov.pl](https://dane.gov.pl/pl/dataset/792,numeryczny-model-terenu-o-interwale-siatki-co-najmniej-100-m)
 znajdziesz numeryczne modele terenu w siatce 100 m dla wszystkich województw.
-Wybierz dowolne województwo i stwórz dwie mapy dla powiatów przedstawiające
-średnią oraz odchylenie standardowe wysokości terenu. Jako rozwiązanie zadania
-przygotuj powtarzalny skrypt.
+Wybierz dowolne województwo i stwórz dwie mapy przedstawiające średnią oraz
+odchylenie standardowe wysokości powiatów. Jako rozwiązanie zadania przygotuj
+powtarzalny skrypt.
 
 Dane udostępnione są w formacie tekstowym. Do ich wczytania możesz wykorzystać
 funkcję `read.table()`. Sprawdź jaki jest separator kolumn, separator dziesiętny,
