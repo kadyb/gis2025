@@ -7,11 +7,6 @@ output:
     toc_float: true
 ---
 
-```{r eval=FALSE}
-# install.packages("remotes")
-remotes::install_github("kadyb/rgugik")
-```
-
 ```{r message=FALSE}
 library("terra")
 library("rgugik")
@@ -63,7 +58,7 @@ W katalogu `dane` znajduje się warstwa poligonowa `Lublin.gpkg`, która repreze
 granicę Lublina w układzie `EPSG:2180`.
 
 ```{r}
-lublin = vect("../dane/Lublin.gpkg")
+lublin = vect("dane/Lublin.gpkg")
 lublin
 ```
 

@@ -7,11 +7,6 @@ output:
     toc_float: true
 ---
 
-```{r eval=FALSE}
-# install.packages("remotes")
-remotes::install_github("kadyb/rgugik")
-```
-
 ```{r message=FALSE}
 library("terra")
 library("rgugik")
@@ -35,13 +30,6 @@ pozbawiona jakichkolwiek obiektów nad powierzchnią terenu, takich jak
 budynki czy drzewa.
 * Numeryczny model pokrycia terenu (*Digital Surface Model*) -- reprezentacja
 terenu wraz z jego pokryciem.
-
-<center>
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/DTM_DSM.svg/1024px-DTM_DSM.svg.png){ width=50% }
-<p style="font-size:12px;">
-https://commons.wikimedia.org/w/index.php?title=File:DTM_DSM.svg
-</p>
-</center>
 
 Cechy CMW:
 
